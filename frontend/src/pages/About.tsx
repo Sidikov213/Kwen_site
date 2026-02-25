@@ -11,12 +11,13 @@ export default function About() {
       </Helmet>
 
       <section
+        className="about-hero"
         style={{
           minHeight: '40vh',
           display: 'flex',
           alignItems: 'center',
           background: 'var(--color-cream)',
-          padding: '4rem 1.5rem',
+          padding: '3rem 1rem',
         }}
       >
         <div style={{ maxWidth: 720, margin: '0 auto', textAlign: 'center' }}>
@@ -38,7 +39,7 @@ export default function About() {
         </div>
       </section>
 
-      <section style={{ maxWidth: 900, margin: '0 auto', padding: '4rem 1.5rem' }}>
+      <section className="page-container" style={{ maxWidth: 900, margin: '0 auto' }}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -95,6 +96,9 @@ export default function About() {
       </section>
 
       <style>{`
+        @media (min-width: 641px) {
+          .about-hero { padding: 4rem 1.5rem !important; }
+        }
         @media (min-width: 640px) {
           .about-grid { grid-template-columns: 1fr 1fr; }
         }

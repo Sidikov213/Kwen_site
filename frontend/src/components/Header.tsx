@@ -28,17 +28,18 @@ export default function Header() {
       }}
     >
       <div
+        className="header-inner"
         style={{
           maxWidth: 1200,
           margin: '0 auto',
-          padding: '1.25rem 1.5rem',
+          padding: '0.875rem 1rem',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
         }}
       >
         <Link to="/" className="header-logo" style={{ display: 'flex', alignItems: 'center' }}>
-          <img src="/images/kwen.png" alt="Kwen" style={{ height: '6.5rem', width: 'auto', objectFit: 'contain' }} />
+          <img src="/images/kwen.png" alt="Kwen" className="header-logo-img" />
         </Link>
 
         <nav
@@ -128,6 +129,14 @@ export default function Header() {
         .site-header {
           backdrop-filter: blur(16px);
         }
+        .header-logo-img {
+          height: 3rem;
+          width: auto;
+          object-fit: contain;
+        }
+        @media (min-width: 768px) {
+          .header-logo-img { height: 6.5rem; }
+        }
         .header-logo:hover {
           opacity: 0.95;
         }
@@ -141,6 +150,7 @@ export default function Header() {
           opacity: 0.9;
         }
         @media (min-width: 768px) {
+          .header-inner { padding: 1.25rem 1.5rem; }
           .desktop-nav { display: flex !important; }
           .mobile-menu-btn { display: none !important; }
           .mobile-nav { display: none !important; }

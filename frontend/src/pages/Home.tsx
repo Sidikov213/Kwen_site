@@ -216,6 +216,7 @@ export default function Home() {
         .hero-premium {
           position: relative;
           min-height: 100vh;
+          min-height: 100dvh;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -324,7 +325,7 @@ export default function Home() {
           position: relative;
           z-index: 2;
           text-align: center;
-          padding: 2rem;
+          padding: 1.25rem 1rem;
           max-width: 720px;
         }
 
@@ -332,11 +333,11 @@ export default function Home() {
           display: inline-flex;
           align-items: center;
           gap: 0.5rem;
-          font-size: 0.85rem;
-          letter-spacing: 0.25em;
+          font-size: 0.7rem;
+          letter-spacing: 0.12em;
           text-transform: uppercase;
           color: rgba(255,255,255,0.85);
-          margin-bottom: 1.5rem;
+          margin-bottom: 1.25rem;
           font-weight: 500;
         }
 
@@ -355,9 +356,9 @@ export default function Home() {
 
         .hero-title-main.hero-title-logo {
           display: block;
-          width: clamp(28rem, 75vw, 48rem);
+          width: clamp(14rem, 88vw, 48rem);
           height: auto;
-          max-height: clamp(14rem, 38vw, 24rem);
+          max-height: clamp(8rem, 45vw, 24rem);
           object-fit: contain;
           filter: drop-shadow(0 2px 12px rgba(0,0,0,0.3)) drop-shadow(0 0 40px rgba(131, 86, 45, 0.2));
         }
@@ -379,15 +380,15 @@ export default function Home() {
 
         .hero-cta {
           display: flex;
-          gap: 1rem;
+          gap: 0.75rem;
           justify-content: center;
           flex-wrap: wrap;
-          margin-top: 2.5rem;
+          margin-top: 2rem;
         }
 
         .hero-btn {
           display: inline-block;
-          padding: 1.1rem 2.25rem;
+          padding: 1rem 1.75rem;
           font-size: 1rem;
           font-weight: 600;
           border-radius: 100px;
@@ -418,7 +419,7 @@ export default function Home() {
 
         .hero-scroll {
           position: absolute;
-          bottom: 2rem;
+          bottom: max(1rem, env(safe-area-inset-bottom));
           left: 50%;
           transform: translateX(-50%);
           color: rgba(255,255,255,0.6);
@@ -606,6 +607,28 @@ export default function Home() {
         .cta-btn:hover {
           transform: translateY(-2px);
           box-shadow: 0 8px 24px rgba(131, 86, 45, 0.4);
+        }
+
+        @media (max-width: 480px) {
+          .hero-cta { flex-direction: column; align-items: stretch; }
+          .hero-btn { width: 100%; text-align: center; }
+        }
+
+        @media (min-width: 641px) {
+          .hero-content { padding: 2rem; }
+          .hero-badge { font-size: 0.85rem; letter-spacing: 0.25em; margin-bottom: 1.5rem; }
+          .hero-cta { margin-top: 2.5rem; gap: 1rem; }
+          .hero-btn { padding: 1.1rem 2.25rem; }
+        }
+
+        @media (max-width: 640px) {
+          .home-banners { padding: 2rem 1rem; }
+          .banners-container { grid-template-columns: 1fr; }
+          .home-gallery { padding: 2rem 1rem; }
+          .gallery-grid { grid-template-columns: repeat(2, 1fr); gap: 0.5rem; }
+          .home-features { padding: 2rem 1rem; gap: 1.5rem; }
+          .feature-card { padding: 1.5rem; }
+          .home-cta { padding: 3rem 1rem; }
         }
       `}</style>
     </>

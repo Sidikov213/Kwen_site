@@ -35,7 +35,7 @@ export default function Contact() {
         <meta name="description" content="Свяжитесь с кафе Kwen. Адрес: проспект Казбекова, 102, Махачкала. Телефон: +7 (988) 293-62-62. Режим работы: 9:00–23:00." />
       </Helmet>
 
-      <div style={{ maxWidth: 800, margin: '0 auto', padding: '3rem 1.5rem' }}>
+      <div className="page-container" style={{ maxWidth: 800, margin: '0 auto' }}>
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

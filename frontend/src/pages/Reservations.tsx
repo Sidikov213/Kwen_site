@@ -45,7 +45,7 @@ export default function Reservations() {
         <meta name="description" content="Забронируйте столик в кафе Kwen. Проспект Казбекова, 102, Махачкала." />
       </Helmet>
 
-      <div style={{ maxWidth: 560, margin: '0 auto', padding: '3rem 1.5rem' }}>
+      <div className="page-container" style={{ maxWidth: 560, margin: '0 auto' }}>
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -116,7 +116,7 @@ export default function Reservations() {
               fontSize: '1rem',
             }}
           />
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <div className="reservation-datetime" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <input
               type="date"
               placeholder="Дата"
@@ -196,6 +196,12 @@ export default function Reservations() {
           </button>
         </motion.form>
       </div>
+
+      <style>{`
+        @media (max-width: 360px) {
+          .reservation-datetime { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
     </>
   )
 }

@@ -4,11 +4,12 @@ import { MapPin, Clock, Phone } from 'lucide-react'
 export default function Footer() {
   return (
     <footer
+      className="site-footer"
       style={{
         background: 'var(--color-primary-dark)',
         color: '#FFFFFF',
-        padding: '3rem 1.5rem 2rem',
-        marginTop: '4rem',
+        padding: '2rem 1rem 1.5rem',
+        marginTop: '3rem',
       }}
     >
       <div
@@ -86,7 +87,9 @@ export default function Footer() {
       </div>
 
       <style>{`
+        .footer-grid a, .footer-grid span { word-break: break-word; }
         @media (min-width: 640px) {
+          .site-footer { padding: 3rem 1.5rem 2rem; margin-top: 4rem; }
           .footer-grid { grid-template-columns: 1fr 1fr; }
         }
         @media (min-width: 900px) {

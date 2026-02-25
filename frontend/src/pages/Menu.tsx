@@ -1,10 +1,20 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { motion } from 'framer-motion'
 
 import { api } from '../api/client'
 
 const API_ORIGIN = ''
+
+/** Имена файлов кофе (точные имена из frontend/public/images) */
+const COFFEE_IMAGE_NAMES: Record<string, string[]> = {
+  'Американо': ['Americano', 'americano', 'Американо'],
+  'Капучино': ['capuchino', 'cappuccino', 'Капучино'],
+  'Латте': ['latte', 'Латте'],
+  'Флэт уайт': ['flat', 'flat-white', 'Флэт уайт'],
+  'Фильтр-кофе': ['filter-coffee', 'Фильтр-кофе', 'filter'],
+}
+const IMG_EXTS = ['.jpg', '.jpeg', '.png']
 
 type Category = { id: number; name: string; slug: string; description: string | null; sort_order: number }
 type MenuItem = { id: number; name: string; description: string | null; price: number; image_url: string | null; category_id: number }
@@ -13,6 +23,38 @@ function getImageUrl(url: string | null): string {
   if (!url) return ''
   if (url.startsWith('http')) return url
   return `${API_ORIGIN}${url}`
+}
+
+function getMenuItemImageUrls(item: MenuItem, categorySlug: string): string[] {
+  if (item.image_url) return [getImageUrl(item.image_url)]
+  const names = categorySlug === 'coffee' && COFFEE_IMAGE_NAMES[item.name]
+  if (!names) return []
+  const urls: string[] = []
+  const bases = ['/images', '/uploads']
+  for (const base of bases) {
+    for (const name of names) {
+      for (const ext of IMG_EXTS) urls.push(`${base}/${name}${ext}`)
+    }
+  }
+  return urls
+}
+
+function MenuItemImage({ urls, alt }: { urls: string[]; alt: string }) {
+  const [idx, setIdx] = useState(0)
+  const [failed, setFailed] = useState(false)
+  const src = urls[idx] ?? ''
+  const onError = useCallback(() => {
+    if (idx < urls.length - 1) setIdx((i) => i + 1)
+    else setFailed(true)
+  }, [idx, urls.length])
+  if (!src || failed) {
+    return (
+      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-secondary)', opacity: 0.4, fontSize: '2.5rem' }}>
+        ☕
+      </div>
+    )
+  }
+  return <img src={src} alt={alt} onError={onError} style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" />
 }
 
 export default function Menu() {
@@ -46,7 +88,7 @@ export default function Menu() {
         <meta name="description" content="Меню кафе Kwen: кофе, завтраки, основные блюда, горячие напитки." />
       </Helmet>
 
-      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '3rem 1.5rem' }}>
+      <div className="page-container" style={{ maxWidth: 1100, margin: '0 auto' }}>
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -155,13 +197,16 @@ export default function Menu() {
                     </p>
                   )}
                   <div
+                    className="menu-items-grid"
                     style={{
                       display: 'grid',
-                      gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+                      gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 280px), 1fr))',
                       gap: '1.5rem',
                     }}
                   >
-                    {group.items.map((item, ii) => (
+                    {group.items.map((item, ii) => {
+                      const imgUrls = getMenuItemImageUrls(item, group.slug)
+                      return (
                       <motion.article
                         key={item.id}
                         initial={{ opacity: 0, y: 16 }}
@@ -184,17 +229,8 @@ export default function Menu() {
                             overflow: 'hidden',
                           }}
                         >
-                          {item.image_url ? (
-                            <img
-                              src={getImageUrl(item.image_url)}
-                              alt={item.name}
-                              style={{
-                                width: '100%',
-                                height: '100%',
-                                objectFit: 'cover',
-                              }}
-                              loading="lazy"
-                            />
+                          {imgUrls.length > 0 ? (
+                            <MenuItemImage urls={imgUrls} alt={item.name} />
                           ) : (
                             <div
                               style={{
@@ -226,7 +262,7 @@ export default function Menu() {
                           )}
                         </div>
                       </motion.article>
-                    ))}
+                    )})}
                   </div>
                 </motion.section>
               ))}

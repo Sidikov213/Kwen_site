@@ -88,6 +88,23 @@ class ReservationResponse(BaseModel):
         from_attributes = True
 
 
+class ReservationAdminResponse(BaseModel):
+    """Full reservation data for admin panel."""
+    id: int
+    name: str
+    phone: str
+    email: str | None
+    date: str
+    time: str
+    guests: int
+    comment: str | None
+    status: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
 class ContactCreate(BaseModel):
     name: str = Field(..., min_length=2, max_length=100)
     email: EmailStr

@@ -30,11 +30,25 @@ type Banner = {
   is_active: boolean
   sort_order: number
 }
+type Reservation = {
+  id: number
+  name: string
+  phone: string
+  email: string | null
+  date: string
+  time: string
+  guests: number
+  comment: string | null
+  status: string
+  created_at: string
+}
+
+const API_ORIGIN = import.meta.env.VITE_API_ORIGIN || ''
 
 function getImageUrl(url: string | null): string {
   if (!url) return ''
   if (url.startsWith('http')) return url
-  return url
+  return `${API_ORIGIN}${url}`
 }
 
 export default function Admin() {
@@ -52,6 +66,7 @@ export default function Admin() {
   const [banners, setBanners] = useState<Banner[]>([])
   const [editingBanner, setEditingBanner] = useState<Banner | null>(null)
   const [showAddBanner, setShowAddBanner] = useState(false)
+  const [reservations, setReservations] = useState<Reservation[]>([])
 
   const loadData = () => {
     if (!token) return
@@ -59,11 +74,13 @@ export default function Admin() {
       fetchApiWithAuth<Category[]>('/admin/categories', token),
       fetchApiWithAuth<MenuItem[]>('/admin/menu/items', token),
       fetchApiWithAuth<Banner[]>('/admin/banners', token),
+      fetchApiWithAuth<Reservation[]>('/admin/reservations', token),
     ])
-      .then(([cats, menuItems, b]) => {
+      .then(([cats, menuItems, b, res]) => {
         setCategories(cats)
         setItems(menuItems)
         setBanners(b)
+        setReservations(res)
       })
       .catch(console.error)
   }
@@ -187,14 +204,10 @@ export default function Admin() {
 
   const handleImageUpload = async (itemId: number, file: File) => {
     if (!token) return
-    try {
-      const { url } = await uploadFile(file, token)
-      await putApi(`/admin/menu/items/${itemId}`, { image_url: url }, token)
-      loadData()
-      setEditingItem((prev) => (prev?.id === itemId ? { ...prev, image_url: url } : prev))
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'Ошибка загрузки')
-    }
+    const { url } = await uploadFile(file, token)
+    await putApi(`/admin/menu/items/${itemId}`, { image_url: url }, token)
+    loadData()
+    setEditingItem((prev) => (prev?.id === itemId ? { ...prev, image_url: url } : prev))
   }
 
   const handleSaveCategory = async (data: Partial<Category>) => {
@@ -267,21 +280,79 @@ export default function Admin() {
     <>
       <Helmet><title>Админ-панель — Kwen</title></Helmet>
       <div style={{ maxWidth: 1000, margin: '0 auto', padding: '2rem 1.5rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '0.5rem' }}>
           <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.75rem' }}>Админ-панель</h1>
-          <button
-            onClick={logout}
-            style={{
-              padding: '0.5rem 1rem',
-              border: '1px solid var(--color-brown)',
-              borderRadius: 'var(--radius-sm)',
-              color: 'var(--color-text-muted)',
-              fontSize: '0.9rem',
-            }}
-          >
-            Выйти
-          </button>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <button onClick={loadData} style={{ padding: '0.5rem 1rem', border: '1px solid var(--color-brown)', borderRadius: 'var(--radius-sm)', color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>Обновить</button>
+            <button
+              onClick={logout}
+              style={{
+                padding: '0.5rem 1rem',
+                border: '1px solid var(--color-brown)',
+                borderRadius: 'var(--radius-sm)',
+                color: 'var(--color-text-muted)',
+                fontSize: '0.9rem',
+              }}
+            >
+              Выйти
+            </button>
+          </div>
         </div>
+
+        {/* Бронирования */}
+        <section style={{ marginBottom: '2.5rem' }}>
+          <h2 style={{ fontSize: '1.25rem', marginBottom: '1rem' }}>Бронирования</h2>
+          <p style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)', marginBottom: '1rem' }}>
+            Позвоните клиенту для подтверждения
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {reservations.length === 0 ? (
+              <div style={{ padding: '1.5rem', background: 'var(--color-cream-dark)', borderRadius: 'var(--radius-md)', color: 'var(--color-text-muted)' }}>
+                Пока нет бронирований
+              </div>
+            ) : (
+              reservations.map((r) => (
+                <div
+                  key={r.id}
+                  style={{
+                    padding: '1rem',
+                    background: r.status === 'pending' ? '#FFF9E6' : '#FFFFFF',
+                    borderRadius: 'var(--radius-md)',
+                    boxShadow: 'var(--shadow-soft)',
+                    borderLeft: r.status === 'pending' ? '4px solid var(--color-secondary)' : '4px solid transparent',
+                  }}
+                >
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'flex-start' }}>
+                    <div style={{ flex: 1, minWidth: 200 }}>
+                      <div style={{ fontWeight: 600, fontSize: '1.05rem', marginBottom: '0.25rem' }}>{r.name}</div>
+                      <a href={`tel:${r.phone.replace(/\D/g, '')}`} style={{ color: 'var(--color-secondary)', fontWeight: 500, fontSize: '1.1rem', textDecoration: 'none' }}>
+                        📞 {r.phone}
+                      </a>
+                      {r.email && <div style={{ fontSize: '0.9rem', marginTop: '0.25rem' }}>✉ {r.email}</div>}
+                    </div>
+                    <div style={{ fontSize: '0.95rem' }}>
+                      <div><strong>Дата:</strong> {r.date}</div>
+                      <div><strong>Время:</strong> {r.time}</div>
+                      <div><strong>Гостей:</strong> {r.guests}</div>
+                      {r.comment && <div style={{ marginTop: '0.5rem', color: 'var(--color-text-muted)' }}>{r.comment}</div>}
+                    </div>
+                    <div>
+                      <span style={{
+                        padding: '0.25rem 0.5rem',
+                        borderRadius: 6,
+                        fontSize: '0.8rem',
+                        background: r.status === 'pending' ? 'rgba(131, 86, 45, 0.2)' : r.status === 'confirmed' ? 'rgba(34, 139, 34, 0.2)' : 'rgba(128,128,128,0.2)',
+                        color: r.status === 'pending' ? 'var(--color-secondary-dark)' : r.status === 'confirmed' ? 'green' : 'gray',
+                      }}>
+                        {r.status === 'pending' ? 'Ожидает' : r.status === 'confirmed' ? 'Подтверждено' : 'Отменено'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </section>
 
         {/* Categories */}
         <section style={{ marginBottom: '2.5rem' }}>
@@ -481,7 +552,7 @@ export default function Admin() {
                       categories={categories}
                       onSave={(d) => handleSaveItem(d)}
                       onCancel={() => setEditingItem(null)}
-                      onImageUpload={(file) => handleImageUpload(item.id, file)}
+                      onImageUpload={async (file) => handleImageUpload(item.id, file)}
                     />
                   ) : (
                     <>
@@ -602,7 +673,7 @@ function ItemEditForm({
   categories: Category[]
   onSave: (d: Partial<MenuItem>) => void
   onCancel: () => void
-  onImageUpload: (file: File) => void
+  onImageUpload: (file: File) => void | Promise<void>
   onImageUploadNew?: (file: File) => Promise<string>
   isNew?: boolean
 }) {
@@ -611,19 +682,38 @@ function ItemEditForm({
   const [price, setPrice] = useState(item.price)
   const [categoryId, setCategoryId] = useState(item.category_id)
   const [imageUrl, setImageUrl] = useState(item.image_url)
+  const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState('')
+
+  useEffect(() => {
+    setName(item.name)
+    setDescription(item.description || '')
+    setPrice(item.price)
+    setCategoryId(item.category_id)
+    setImageUrl(item.image_url)
+  }, [item.id, item.name, item.description, item.price, item.category_id, item.image_url])
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0]
     if (!f) return
-    if (isNew && onImageUploadNew) {
-      try {
+    if (!/^image\/(jpeg|jpg|png|webp)$/i.test(f.type)) {
+      setUploadError('Формат: JPG, PNG или WebP')
+      return
+    }
+    setUploadError('')
+    setUploading(true)
+    try {
+      if (isNew && onImageUploadNew) {
         const url = await onImageUploadNew(f)
         setImageUrl(url)
-      } catch (err) {
-        alert(err instanceof Error ? err.message : 'Ошибка загрузки')
+      } else if (!isNew) {
+        await onImageUpload(f)
       }
-    } else if (!isNew) {
-      onImageUpload(f)
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : 'Ошибка загрузки')
+    } finally {
+      setUploading(false)
+      e.target.value = ''
     }
   }
 
@@ -654,8 +744,39 @@ function ItemEditForm({
         ))}
       </select>
       <div>
-        <label style={{ fontSize: '0.9rem' }}>Фото: </label>
-        <input type="file" accept="image/*" onChange={handleFileChange} />
+        <label style={{ fontSize: '0.9rem', display: 'block', marginBottom: '0.25rem' }}>Фото блюда</label>
+        {imageUrl && (
+          <div style={{ marginBottom: '0.5rem' }}>
+            <div style={{ width: 80, height: 60, borderRadius: 6, overflow: 'hidden', background: 'var(--color-sand)' }}>
+              <img src={getImageUrl(imageUrl)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            </div>
+            {!isNew && (
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    await onSave({ image_url: null })
+                    setImageUrl(null)
+                  } catch (e) {
+                    setUploadError(e instanceof Error ? e.message : 'Ошибка')
+                  }
+                }}
+                style={{ fontSize: '0.8rem', marginTop: '0.25rem', color: 'var(--color-secondary)' }}
+              >
+                Удалить фото
+              </button>
+            )}
+          </div>
+        )}
+        <input
+          type="file"
+          accept="image/jpeg,image/jpg,image/png,image/webp"
+          onChange={handleFileChange}
+          disabled={uploading}
+          style={{ fontSize: '0.9rem' }}
+        />
+        {uploading && <span style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginLeft: '0.5rem' }}>Загрузка...</span>}
+        {uploadError && <div style={{ fontSize: '0.85rem', color: 'var(--color-secondary)', marginTop: '0.25rem' }}>{uploadError}</div>}
       </div>
       <div>
         <button

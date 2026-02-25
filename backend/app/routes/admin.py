@@ -10,18 +10,22 @@ from ..schemas import (
     CategoryCreate, CategoryUpdate, CategoryResponse,
     MenuItemCreate, MenuItemUpdate, MenuItemResponse,
     BannerCreate, BannerUpdate, BannerResponse,
+    ReservationAdminResponse,
     AdminLogin, Token
 )
 from ..crud import (
     get_categories, get_category_by_id, create_category, update_category, delete_category,
     get_menu_items, get_menu_item_by_id, create_menu_item, update_menu_item, delete_menu_item,
     get_banners, get_banner_by_id, create_banner, update_banner, delete_banner,
+    get_reservations,
     get_admin_by_username,
 )
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
-UPLOADS_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "..", "images")
+# Тот же путь, что и в main.py (backend/images)
+_BASE = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+UPLOADS_DIR = os.path.join(_BASE, "images")
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
 
 
@@ -51,6 +55,16 @@ async def upload_image(
     with open(filepath, "wb") as f:
         f.write(content)
     return {"url": f"/uploads/{filename}"}
+
+
+@router.get("/reservations", response_model=list[ReservationAdminResponse])
+async def admin_list_reservations(
+    limit: int = 100,
+    db: AsyncSession = Depends(get_db),
+    _: str = Depends(get_current_admin)
+):
+    """List all reservations for admin to call and confirm."""
+    return await get_reservations(db, limit=limit)
 
 
 @router.get("/categories", response_model=list[CategoryResponse])

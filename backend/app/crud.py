@@ -80,6 +80,14 @@ async def create_reservation(db: AsyncSession, data: ReservationCreate):
     return reservation
 
 
+async def get_reservations(db: AsyncSession, limit: int = 100):
+    """Get all reservations for admin, newest first."""
+    result = await db.execute(
+        select(Reservation).order_by(Reservation.created_at.desc()).limit(limit)
+    )
+    return result.scalars().all()
+
+
 async def create_contact(db: AsyncSession, data: ContactCreate):
     msg = ContactMessage(**data.model_dump())
     db.add(msg)
